@@ -35,3 +35,35 @@
 //     );
 //   }
 // }
+
+
+
+import { NextRequest, NextResponse } from "next/server";
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+
+    const { name, phone, message } = body;
+
+    if (!name || !phone) {
+      return NextResponse.json(
+        { error: "Name and phone required" },
+        { status: 400 }
+      );
+    }
+
+    // 👉 your logic here (DB / email / etc)
+
+    return NextResponse.json({
+      success: true,
+      message: "Form submitted successfully",
+    });
+
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Something went wrong" },
+      { status: 500 }
+    );
+  }
+}

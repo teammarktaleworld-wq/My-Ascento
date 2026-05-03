@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, ReactNode } from "react";
 
 export function useReveal() {
-  const ref = useRef(null);
+  const ref = useRef<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -27,7 +27,19 @@ export function useReveal() {
   return { ref, visible };
 }
 
-export function Reveal({ children, className = "", delay = 0, dir = "up" }) {
+type RevealProps = {
+  children: ReactNode;
+  className?: string;
+  delay?: number;
+  dir?: "up" | "left" | "right" | "scale";
+};
+
+export function Reveal({
+  children,
+  className = "",
+  delay = 0,
+  dir = "up",
+}: RevealProps) {
   const { ref, visible } = useReveal();
 
   const transforms = {

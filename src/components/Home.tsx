@@ -4,7 +4,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react"; 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Reveal } from "@/ui/home/Reveal"
@@ -19,6 +19,9 @@ import { Star } from "@/ui/home/Star";
 export default function Home() {
     const [navScrolled, setNavScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
+    const [imgSrc, setImgSrc] = useState("/Images/DSC_0037-scaled-1.jpg");
+    const [imageErrors, setImageErrors] = useState<{ [key: number]: boolean }>({});
+
 
     useEffect(() => {
         const onScroll = () => setNavScrolled(window.scrollY > 40);
@@ -174,7 +177,18 @@ export default function Home() {
                 <div style={{ position: "absolute", top: "18%", left: "6%", fontSize: 40 }} className="float-a">⭐</div>
                 <div style={{ position: "absolute", top: "12%", right: "18%", fontSize: 36 }} className="float-b">🎯</div>
                 <div style={{ position: "absolute", bottom: "22%", left: "4%", fontSize: 32 }} className="float-c">🚀</div>
-                <div style={{ position: "absolute", bottom: "28%", right: "8%", fontSize: 44 }} className="float-a" style2={{ animationDelay: "1s" }}>🌈</div>
+                <div
+                    style={{
+                        position: "absolute",
+                        bottom: "28%",
+                        right: "8%",
+                        fontSize: 44,
+                        animationDelay: "1s",
+                    }}
+                    className="float-a"
+                >
+                    🌈
+                </div>
                 <div style={{ position: "absolute", top: "55%", left: "12%", fontSize: 28 }} className="wiggle">✏️</div>
 
                 {/* Dotted pattern */}
@@ -232,14 +246,16 @@ export default function Home() {
                         {/* Right: Image + floating cards */}
                         <div style={{ position: "relative" }}>
                             <div style={{ borderRadius: 32, overflow: "hidden", boxShadow: "0 30px 80px rgba(0,0,0,.18)", transform: "rotate(2deg)", border: "6px solid white" }}>
+
                                 <Image
-                                    src="/Images/DSC_0037-scaled-1.jpg"
-                                    alt="Happy students learning abacus"
-                                    width={600} height={480}
-                                    className="gallery-img"
-                                    style={{ width: "100%", height: 420, objectFit: "cover", display: "block" }}
-                                    priority
-                                    onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&q=80"; }}
+                                    src={imgSrc}
+                                    alt="Happy students"
+                                    width={600}
+                                    height={480}
+                                    style={{ width: "100%", height: 420, objectFit: "cover" }}
+                                    onError={() => {
+                                        setImgSrc("https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&q=80");
+                                    }}
                                 />
                             </div>
 
@@ -447,12 +463,18 @@ export default function Home() {
                                     boxShadow: "0 8px 30px rgba(0,0,0,.3)",
                                 }}>
                                     <Image
-                                        src={img.src}
+                                        src={imageErrors[i] ? img.fallback : img.src}
                                         alt={img.alt}
-                                        width={600} height={440}
+                                        width={600}
+                                        height={440}
                                         className="gallery-img"
                                         style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                                        onError={(e) => { e.target.src = img.fallback; }}
+                                        onError={() => {
+                                            setImageErrors((prev) => ({
+                                                ...prev,
+                                                [i]: true,
+                                            }));
+                                        }}
                                     />
                                     <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top,rgba(10,10,30,.7) 0%,transparent 50%)", opacity: 0, transition: "opacity .4s", display: "flex", alignItems: "flex-end", padding: 16 }} className="gallery-overlay-inner">
                                         <span style={{ fontWeight: 800, fontSize: 14, color: "white" }}>{img.alt}</span>
