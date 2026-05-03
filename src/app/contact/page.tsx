@@ -250,9 +250,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
-import { FadeIn, SlideIn, ScaleIn } from "../components/AnimatedSection";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
+import { FadeIn, SlideIn, ScaleIn } from "../../components/AnimatedSection";
 import { useState } from "react";
 
 export default function ContactPage() {

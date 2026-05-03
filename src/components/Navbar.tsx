@@ -11,7 +11,7 @@ import {
   X, 
   ChevronDown,
 } from "lucide-react";
-import { supabase } from "../../lib/supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 
 export default function Navbar() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
