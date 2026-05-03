@@ -29,26 +29,20 @@ model ContactEnquiry {
 
 
 model User {
-  id                  String    @id @default(uuid())
-  firebaseUid         String?   @unique
-  email               String    @unique
-  name                String
-  role                UserRole  @default(user)
-  avatarUrl           String?
-  passwordHash        String?
-  isPasswordTemporary Boolean   @default(false)
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  id          String    @id @default(uuid())   // matches supabase auth.users.id
+  email       String    @unique
+  name        String?
+  phone       String?
+  avatarUrl   String?
+  role        Role      @default(USER)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  // Relations
-  student       Student?
-  teacher       Teacher?
-  enquiriesCreated  Enquiry[]    @relation("EnquiryCreatedBy")
-  attendanceMarked  Attendance[] @relation("AttendanceMarkedBy")
-  feesCreated       Fee[]        @relation("FeeCreatedBy")
-
-  @@map("users")
+  @@map("users")  // maps to public.users table in Supabase
 }
+
+
+
 
 // ─── Students ────────────────────────────────────────────────────────────────
 

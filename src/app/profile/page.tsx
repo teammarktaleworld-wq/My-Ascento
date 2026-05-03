@@ -282,7 +282,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { useRouter } from "next/navigation";
-import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { 
   User, 
@@ -383,7 +382,7 @@ export default function ProfilePage() {
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
-            <Navbar />
+            {/* <Navbar /> */}
             
             <main className="flex-grow py-20 px-4">
                 <div className="max-w-4xl mx-auto">

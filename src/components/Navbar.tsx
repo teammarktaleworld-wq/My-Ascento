@@ -1,185 +1,946 @@
+// "use client";
+
+// // ─────────────────────────────────────────────────────────────────
+// // /components/Navbar.jsx  — Ascento Abacus
+// //
+// // Props (all optional — wire to your auth system):
+// //   user        : { name: string, email: string, avatar?: string } | null
+// //   onLogin     : () => void   — called when "Login" is clicked
+// //   onSignOut   : () => void   — called when "Sign Out" is clicked
+// //   onDashboard : () => void   — called when "Dashboard" is clicked
+// //
+// // If you're using NextAuth, replace the props with:
+// //   const { data: session } = useSession();
+// //   and pass session?.user as `user`
+// // ─────────────────────────────────────────────────────────────────
+
+// // import { useEffect, useRef, useState } from "react";
+// // import Link from "next/link";
+
+// // export default function Navbar({ user = null, onLogin, onSignOut, onDashboard }) {
+// //   const [navScrolled, setNavScrolled] = useState(false);
+// //   const [menuOpen, setMenuOpen]       = useState(false); // mobile
+// //   const [dropOpen, setDropOpen]       = useState(false); // user dropdown
+// //   const dropRef = useRef(null);
+
+// //   /* scroll listener */
+// //   useEffect(() => {
+// //     const onScroll = () => setNavScrolled(window.scrollY > 40);
+// //     window.addEventListener("scroll", onScroll);
+// //     return () => window.removeEventListener("scroll", onScroll);
+// //   }, []);
+
+// //   /* close dropdown on outside click */
+// //   useEffect(() => {
+// //     const handler = (e) => {
+// //       if (dropRef.current && !dropRef.current.contains(e.target)) {
+// //         setDropOpen(false);
+// //       }
+// //     };
+// //     document.addEventListener("mousedown", handler);
+// //     return () => document.removeEventListener("mousedown", handler);
+// //   }, []);
+
+// //   /* initials from name */
+// //   const initials = user?.name
+// //     ? user.name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()
+// //     : "U";
+
+
+// import { useEffect, useRef, useState } from "react";
+// import Link from "next/link";
+
+
+
+// type AuthUser = {
+//   id: string;
+//   email: string;
+//   name?: string;
+//   role?: string;
+//   avatar?: string; // ✅ add this
+// };
+
+// type NavbarProps = {
+//   user?: AuthUser | null;
+//   onLogin?: () => void;
+//   onSignOut?: () => void;
+//   onDashboard?: () => void;
+// };
+
+// export default function Navbar({
+//   user = null,
+//   onLogin,
+//   onSignOut,
+//   onDashboard,
+// }: NavbarProps) {
+//   const [navScrolled, setNavScrolled] = useState(false);
+//   const [menuOpen, setMenuOpen] = useState(false);
+//   const [dropOpen, setDropOpen] = useState(false);
+
+//   const dropRef = useRef<HTMLDivElement | null>(null);
+
+//   return (
+//     <>
+//       <style>{`
+//         /* ── Navbar base ── */
+//         .asc-nav {
+//           position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+//           padding: 14px 0;
+//           background: rgba(255,253,247,1);
+//           border: none;
+//           outline: none;
+//           transition: background 0.4s, box-shadow 0.4s, backdrop-filter 0.4s;
+//         }
+//         .asc-nav.scrolled {
+//           background: rgba(255,253,247,0.96);
+//           backdrop-filter: blur(16px);
+//           box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+//         }
+//         .asc-nav-inner {
+//           max-width: 1200px; margin: 0 auto;
+//           padding: 0 24px;
+//           display: flex; align-items: center; justify-content: space-between; gap: 16px;
+//         }
+
+//         /* ── Logo ── */
+//         .asc-logo {
+//           text-decoration: none; display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+//         }
+//         .asc-logo-icon {
+//           width: 44px; height: 44px; border-radius: 14px;
+//           background: linear-gradient(135deg, #FF6B6B, #FFB347);
+//           display: flex; align-items: center; justify-content: center;
+//           font-size: 22px; box-shadow: 0 4px 14px rgba(255,107,107,.4);
+//           flex-shrink: 0;
+//         }
+//         .asc-logo-title {
+//           font-family: 'Fredoka One', cursive; font-size: 22px; color: #1A1A2E; line-height: 1;
+//         }
+//         .asc-logo-title span { color: #FF6B6B; }
+//         .asc-logo-sub {
+//           font-size: 10px; font-weight: 800; letter-spacing: 0.12em;
+//           text-transform: uppercase; color: #999; margin-top: 1px;
+//         }
+
+//         /* ── Desktop nav links ── */
+//         .asc-links {
+//           display: flex; gap: 28px; align-items: center;
+//         }
+//         .asc-link {
+//           position: relative; font-size: 15px; font-weight: 800;
+//           color: #1A1A2E; text-decoration: none; transition: color .2s;
+//           white-space: nowrap;
+//         }
+//         .asc-link::after {
+//           content: ''; position: absolute; bottom: -4px; left: 0;
+//           width: 0; height: 3px; border-radius: 3px; background: #FF6B6B;
+//           transition: width .3s cubic-bezier(.34,1.56,.64,1);
+//         }
+//         .asc-link:hover { color: #FF6B6B; }
+//         .asc-link:hover::after { width: 100%; }
+
+//         /* ── Right slot (auth + enrol) ── */
+//         .asc-right {
+//           display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+//         }
+
+//         /* ── Login button ── */
+//         .asc-login-btn {
+//           background: transparent; color: #1A1A2E;
+//           font-family: inherit; font-weight: 800; font-size: 14px;
+//           padding: 10px 22px; border-radius: 50px;
+//           border: 2.5px solid #1A1A2E30;
+//           cursor: pointer; text-decoration: none;
+//           display: inline-flex; align-items: center; gap: 7px;
+//           transition: all .3s cubic-bezier(.34,1.56,.64,1);
+//           white-space: nowrap;
+//         }
+//         .asc-login-btn:hover {
+//           border-color: #FF6B6B; color: #FF6B6B;
+//           box-shadow: 0 4px 14px rgba(255,107,107,.18);
+//         }
+
+//         /* ── Enrol button ── */
+//         .asc-enrol-btn {
+//           background: #FF6B6B; color: #fff;
+//           font-family: inherit; font-weight: 900; font-size: 14px;
+//           padding: 10px 22px; border-radius: 50px; border: none;
+//           cursor: pointer; text-decoration: none;
+//           display: inline-flex; align-items: center; gap: 7px;
+//           box-shadow: 0 6px 20px rgba(255,107,107,.4);
+//           transition: all .3s cubic-bezier(.34,1.56,.64,1);
+//           white-space: nowrap;
+//         }
+//         .asc-enrol-btn:hover { transform: scale(1.08) translateY(-2px); box-shadow: 0 12px 30px rgba(255,107,107,.5); }
+
+//         /* ── User avatar trigger ── */
+//         .asc-user-trigger {
+//           display: flex; align-items: center; gap: 9px;
+//           cursor: pointer; padding: 6px 14px 6px 6px;
+//           border-radius: 50px; border: 2.5px solid transparent;
+//           transition: all .25s;
+//           position: relative;
+//           background: transparent;
+//           font-family: inherit;
+//         }
+//         .asc-user-trigger:hover,
+//         .asc-user-trigger.open {
+//           border-color: #FF6B6B33;
+//           background: #FFF0F0;
+//         }
+//         .asc-avatar {
+//           width: 34px; height: 34px; border-radius: 50%;
+//           background: linear-gradient(135deg, #FF6B6B, #FFB347);
+//           display: flex; align-items: center; justify-content: center;
+//           font-size: 13px; font-weight: 900; color: white;
+//           flex-shrink: 0; overflow: hidden;
+//         }
+//         .asc-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+//         .asc-user-name {
+//           font-size: 13px; font-weight: 800; color: #1A1A2E;
+//           max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+//         }
+//         .asc-chevron {
+//           font-size: 10px; color: #999;
+//           transition: transform .25s;
+//           display: inline-block;
+//         }
+//         .asc-chevron.open { transform: rotate(180deg); }
+
+//         /* ── Dropdown ── */
+//         .asc-dropdown {
+//           position: absolute; top: calc(100% + 10px); right: 0;
+//           background: white; border-radius: 20px;
+//           box-shadow: 0 20px 50px rgba(0,0,0,.14), 0 4px 12px rgba(0,0,0,.07);
+//           border: 2px solid #FFF0F0;
+//           padding: 8px; min-width: 220px;
+//           animation: ascDropIn .25s cubic-bezier(.34,1.56,.64,1) both;
+//           z-index: 300;
+//         }
+//         @keyframes ascDropIn {
+//           from { opacity: 0; transform: translateY(-8px) scale(.96); }
+//           to   { opacity: 1; transform: translateY(0) scale(1); }
+//         }
+
+//         .asc-drop-header {
+//           padding: 12px 14px 10px;
+//           border-bottom: 1.5px solid #F5F5F5;
+//           margin-bottom: 6px;
+//         }
+//         .asc-drop-header-name {
+//           font-weight: 900; font-size: 14px; color: #1A1A2E;
+//         }
+//         .asc-drop-header-email {
+//           font-size: 11px; color: #999; font-weight: 700;
+//           margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+//         }
+
+//         .asc-drop-item {
+//           display: flex; align-items: center; gap: 10px;
+//           padding: 10px 14px; border-radius: 12px;
+//           font-size: 13px; font-weight: 800; color: #1A1A2E;
+//           cursor: pointer; text-decoration: none;
+//           transition: background .18s, color .18s;
+//           width: 100%; border: none; background: none; font-family: inherit;
+//           text-align: left;
+//         }
+//         .asc-drop-item:hover { background: #FFF0F0; color: #FF6B6B; }
+//         .asc-drop-item.danger:hover { background: #FFF0F0; color: #FF4444; }
+//         .asc-drop-divider { height: 1.5px; background: #F5F5F5; margin: 6px 0; }
+
+//         /* ── Hamburger (mobile) ── */
+//         .asc-hamburger {
+//           display: none; flex-direction: column; gap: 5px;
+//           cursor: pointer; padding: 8px; background: none; border: none;
+//         }
+//         .asc-hamburger span {
+//           display: block; width: 22px; height: 2.5px;
+//           background: #1A1A2E; border-radius: 2px;
+//           transition: all .3s;
+//         }
+//         .asc-hamburger.open span:nth-child(1) { transform: translateY(7.5px) rotate(45deg); }
+//         .asc-hamburger.open span:nth-child(2) { opacity: 0; }
+//         .asc-hamburger.open span:nth-child(3) { transform: translateY(-7.5px) rotate(-45deg); }
+
+//         /* ── Mobile menu ── */
+//         .asc-mobile-menu {
+//           display: none;
+//           position: fixed; top: 72px; left: 0; right: 0;
+//           background: rgba(255,253,247,0.98);
+//           backdrop-filter: blur(20px);
+//           padding: 20px 24px 28px;
+//           box-shadow: 0 12px 40px rgba(0,0,0,.12);
+//           border-bottom: 2px solid #FFE0D0;
+//           animation: mobileIn .3s cubic-bezier(.34,1.56,.64,1) both;
+//           z-index: 199;
+//         }
+//         @keyframes mobileIn {
+//           from { opacity: 0; transform: translateY(-16px); }
+//           to   { opacity: 1; transform: translateY(0); }
+//         }
+//         .asc-mobile-menu.open { display: block; }
+//         .asc-mobile-link {
+//           display: block; font-size: 18px; font-weight: 800; color: #1A1A2E;
+//           text-decoration: none; padding: 12px 0;
+//           border-bottom: 1.5px solid #F0EDE8;
+//           transition: color .2s;
+//         }
+//         .asc-mobile-link:hover { color: #FF6B6B; }
+//         .asc-mobile-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+
+//         /* ── Responsive ── */
+//         @media (max-width: 768px) {
+//           .asc-links { display: none; }
+//           .asc-enrol-btn { display: none; }
+//           .asc-hamburger { display: flex; }
+//         }
+//         @media (max-width: 480px) {
+//           .asc-login-btn span.label { display: none; }
+//           .asc-user-name { display: none; }
+//         }
+//       `}</style>
+
+//       <nav className={`asc-nav${navScrolled ? " scrolled" : ""}`}>
+//         <div className="asc-nav-inner">
+
+//           {/* ── Logo ── */}
+//           <Link href="/" className="asc-logo">
+//             <div className="asc-logo-icon">🧮</div>
+//             <div>
+//               <div className="asc-logo-title">Ascento <span>Abacus</span></div>
+//               <div className="asc-logo-sub">Brain Development Academy</div>
+//             </div>
+//           </Link>
+
+//           {/* ── Desktop Links ── */}
+//           <div className="asc-links">
+//             <Link href="/programs"  className="asc-link">Programs</Link>
+//             <Link href="/#whyus"    className="asc-link">Why Us</Link>
+//             <Link href="/#gallery"  className="asc-link">Gallery</Link>
+//             <Link href="/#team"     className="asc-link">Team</Link>
+//             <Link href="/contact"   className="asc-link">Contact</Link>
+//           </div>
+
+//           {/* ── Right: Auth + Enrol ── */}
+//           <div className="asc-right">
+
+//             {/* ── NOT logged in ── */}
+//             {!user && (
+//               <button className="asc-login-btn" onClick={onLogin}>
+//                 <span>🔑</span>
+//                 <span className="label">Login</span>
+//               </button>
+//             )}
+
+//             {/* ── Logged in: avatar + dropdown ── */}
+//             {user && (
+//               <div style={{ position: "relative" }} ref={dropRef}>
+//                 <button
+//                   className={`asc-user-trigger${dropOpen ? " open" : ""}`}
+//                   onClick={() => setDropOpen((v) => !v)}
+//                   aria-haspopup="true"
+//                   aria-expanded={dropOpen}
+//                 >
+//                   <div className="asc-avatar">
+//                     {user.avatar
+//                       ? <img src={user.avatar} alt={user.name} />
+//                       : initials}
+//                   </div>
+//                   <span className="asc-user-name">{user.name?.split(" ")[0]}</span>
+//                   <span className={`asc-chevron${dropOpen ? " open" : ""}`}>▼</span>
+//                 </button>
+
+//                 {dropOpen && (
+//                   <div className="asc-dropdown" role="menu">
+//                     {/* Header */}
+//                     <div className="asc-drop-header">
+//                       <div className="asc-drop-header-name">{user.name}</div>
+//                       {user.email && (
+//                         <div className="asc-drop-header-email">{user.email}</div>
+//                       )}
+//                     </div>
+
+//                     {/* Dashboard */}
+//                     <button
+//                       className="asc-drop-item"
+//                       role="menuitem"
+//                       onClick={() => { setDropOpen(false); onDashboard?.(); }}
+//                     >
+//                       <span>📊</span> Dashboard
+//                     </button>
+
+//                     {/* Profile */}
+//                     <Link href="/profile" className="asc-drop-item" role="menuitem" onClick={() => setDropOpen(false)}>
+//                       <span>👤</span> My Profile
+//                     </Link>
+
+//                     {/* Settings */}
+//                     <Link href="/settings" className="asc-drop-item" role="menuitem" onClick={() => setDropOpen(false)}>
+//                       <span>⚙️</span> Settings
+//                     </Link>
+
+//                     <div className="asc-drop-divider" />
+
+//                     {/* Sign out */}
+//                     <button
+//                       className="asc-drop-item danger"
+//                       role="menuitem"
+//                       onClick={() => { setDropOpen(false); onSignOut?.(); }}
+//                     >
+//                       <span>🚪</span> Sign Out
+//                     </button>
+//                   </div>
+//                 )}
+//               </div>
+//             )}
+
+//             <Link href="/contact" className="asc-enrol-btn">🎉 Enrol Now</Link>
+
+//             {/* ── Hamburger ── */}
+//             <button
+//               className={`asc-hamburger${menuOpen ? " open" : ""}`}
+//               onClick={() => setMenuOpen((v) => !v)}
+//               aria-label="Toggle menu"
+//             >
+//               <span /><span /><span />
+//             </button>
+//           </div>
+//         </div>
+//       </nav>
+
+//       {/* ── Mobile menu ── */}
+//       <div className={`asc-mobile-menu${menuOpen ? " open" : ""}`}>
+//         {["Programs|/programs", "Why Us|/#whyus", "Gallery|/#gallery", "Team|/#team", "Contact|/contact"].map((item) => {
+//           const [label, href] = item.split("|");
+//           return (
+//             <Link key={label} href={href} className="asc-mobile-link" onClick={() => setMenuOpen(false)}>
+//               {label}
+//             </Link>
+//           );
+//         })}
+
+//         <div className="asc-mobile-actions">
+//           {!user && (
+//             <button
+//               className="asc-login-btn"
+//               style={{ justifyContent: "center" }}
+//               onClick={() => { setMenuOpen(false); onLogin?.(); }}
+//             >
+//               🔑 Login
+//             </button>
+//           )}
+//           {user && (
+//             <>
+//               <button
+//                 className="asc-login-btn"
+//                 style={{ justifyContent: "center" }}
+//                 onClick={() => { setMenuOpen(false); onDashboard?.(); }}
+//               >
+//                 📊 Dashboard
+//               </button>
+//               <button
+//                 className="asc-login-btn"
+//                 style={{ justifyContent: "center", color: "#FF4444", borderColor: "#FF444430" }}
+//                 onClick={() => { setMenuOpen(false); onSignOut?.(); }}
+//               >
+//                 🚪 Sign Out
+//               </button>
+//             </>
+//           )}
+//           <Link href="/contact" className="asc-enrol-btn" style={{ justifyContent: "center" }} onClick={() => setMenuOpen(false)}>
+//             🎉 Enrol Now
+//           </Link>
+//         </div>
+//       </div>
+//     </>
+//   );
+// }
+
+
+
+
+
+
+
+
+
+
+
 
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
-import Image from "next/image";
-import { 
-  LogOut, 
-  LayoutDashboard, 
-  Menu, 
-  X, 
-  ChevronDown,
-} from "lucide-react";
-import { supabase } from "../lib/supabaseClient";
 
-export default function Navbar() {
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [user, setUser] = useState<any>(null);
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+type AuthUser = {
+  id: string;
+  email: string;
+  name?: string;
+  role?: string;
+  avatar?: string;
+};
 
-    useEffect(() => {
-        // Get initial session
-        const getUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            setUser(user ?? null);
-        };
-        getUser();
+type NavbarProps = {
+  user?: AuthUser | null;
+  onLogin?: () => void;
+  onSignOut?: () => void;
+  onDashboard?: () => void;
+};
 
-        // Listen for auth changes
-        const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-            setUser(session?.user ?? null);
-        });
+export default function Navbar({
+  user = null,
+  onLogin,
+  onSignOut,
+  onDashboard,
+}: NavbarProps) {
+  const [navScrolled, setNavScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [dropOpen, setDropOpen] = useState(false);
 
-        return () => listener.subscription.unsubscribe();
-    }, []);
+  const dropRef = useRef<HTMLDivElement | null>(null);
 
-    const handleLogout = async () => {
-        await supabase.auth.signOut();
-        window.location.href = "/";
+  /* scroll listener */
+  useEffect(() => {
+    const onScroll = () => setNavScrolled(window.scrollY > 40);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  /* close dropdown on outside click */
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropRef.current && !dropRef.current.contains(e.target as Node)) {
+        setDropOpen(false);
+      }
     };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
-    const role = user?.user_metadata?.role || "user";
-    const displayName = user?.user_metadata?.name || user?.email?.split("@")[0] || "U";
-    const initial = displayName[0].toUpperCase();
+  /* initials from name or email fallback */
+  const initials = user?.name
+    ? user.name
+        .split(" ")
+        .map((w: string) => w[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
+    : user?.email?.[0].toUpperCase() ?? "U";
 
-    return (
-        <header className="sticky top-0 z-[100] bg-white/80 dark:bg-[#020617]/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 transition-all duration-500">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-20">
-                    <Link href="/" className="flex items-center gap-3 group">
-                        <div className="relative size-12 flex items-center justify-center transition-transform group-hover:scale-110">
-                            <Image 
-                                src="/Acento-Logo.jpg" 
-                                alt="Ascento Abacus Logo" 
-                                width={48} 
-                                height={48}
-                                className="object-contain rounded-lg"
-                            />
-                        </div>
-                        <h1 className="text-xl font-black tracking-tight text-[#0e141b] dark:text-white bg-clip-text">
-                            Ascento <span className="text-[#197fe6]">Abacus</span>
-                        </h1>
+  return (
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap');
+
+        /* ── Navbar base ── */
+        .asc-nav {
+          position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+          padding: 14px 0;
+          background: rgba(255,253,247,1);
+          border: none;
+          outline: none;
+          transition: background 0.4s, box-shadow 0.4s, backdrop-filter 0.4s;
+        }
+        .asc-nav.scrolled {
+          background: rgba(255,253,247,0.96);
+          backdrop-filter: blur(16px);
+          box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+        }
+        .asc-nav-inner {
+          max-width: 1200px; margin: 0 auto;
+          padding: 0 24px;
+          display: flex; align-items: center; justify-content: space-between; gap: 16px;
+        }
+
+        /* ── Logo ── */
+        .asc-logo {
+          text-decoration: none; display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+        }
+        .asc-logo-icon {
+          width: 44px; height: 44px; border-radius: 14px;
+          background: linear-gradient(135deg, #FF6B6B, #FFB347);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 22px; box-shadow: 0 4px 14px rgba(255,107,107,.4);
+          flex-shrink: 0;
+        }
+        .asc-logo-title {
+          font-family: 'Fredoka One', cursive; font-size: 22px; color: #1A1A2E; line-height: 1;
+        }
+        .asc-logo-title span { color: #FF6B6B; }
+        .asc-logo-sub {
+          font-size: 10px; font-weight: 800; letter-spacing: 0.12em;
+          text-transform: uppercase; color: #999; margin-top: 1px;
+        }
+
+        /* ── Desktop nav links ── */
+        .asc-links {
+          display: flex; gap: 28px; align-items: center;
+        }
+        .asc-link {
+          position: relative; font-size: 15px; font-weight: 800;
+          color: #1A1A2E; text-decoration: none; transition: color .2s;
+          white-space: nowrap;
+        }
+        .asc-link::after {
+          content: ''; position: absolute; bottom: -4px; left: 0;
+          width: 0; height: 3px; border-radius: 3px; background: #FF6B6B;
+          transition: width .3s cubic-bezier(.34,1.56,.64,1);
+        }
+        .asc-link:hover { color: #FF6B6B; }
+        .asc-link:hover::after { width: 100%; }
+
+        /* ── Right slot ── */
+        .asc-right {
+          display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+        }
+
+        /* ── Login button ── */
+        .asc-login-btn {
+          background: transparent; color: #1A1A2E;
+          font-family: inherit; font-weight: 800; font-size: 14px;
+          padding: 10px 22px; border-radius: 50px;
+          border: 2.5px solid rgba(26,26,46,0.18);
+          cursor: pointer; text-decoration: none;
+          display: inline-flex; align-items: center; gap: 7px;
+          transition: all .3s cubic-bezier(.34,1.56,.64,1);
+          white-space: nowrap;
+        }
+        .asc-login-btn:hover {
+          border-color: #FF6B6B; color: #FF6B6B;
+          box-shadow: 0 4px 14px rgba(255,107,107,.18);
+        }
+
+        /* ── Enrol button ── */
+        .asc-enrol-btn {
+          background: #FF6B6B; color: #fff;
+          font-family: inherit; font-weight: 900; font-size: 14px;
+          padding: 10px 22px; border-radius: 50px; border: none;
+          cursor: pointer; text-decoration: none;
+          display: inline-flex; align-items: center; gap: 7px;
+          box-shadow: 0 6px 20px rgba(255,107,107,.4);
+          transition: all .3s cubic-bezier(.34,1.56,.64,1);
+          white-space: nowrap;
+        }
+        .asc-enrol-btn:hover {
+          transform: scale(1.08) translateY(-2px);
+          box-shadow: 0 12px 30px rgba(255,107,107,.5);
+        }
+
+        /* ── User avatar trigger ── */
+        .asc-user-trigger {
+          display: flex; align-items: center; gap: 9px;
+          cursor: pointer; padding: 6px 14px 6px 6px;
+          border-radius: 50px; border: 2.5px solid transparent;
+          transition: all .25s;
+          position: relative;
+          background: transparent;
+          font-family: inherit;
+        }
+        .asc-user-trigger:hover,
+        .asc-user-trigger.open {
+          border-color: rgba(255,107,107,0.2);
+          background: #FFF0F0;
+        }
+        .asc-avatar {
+          width: 34px; height: 34px; border-radius: 50%;
+          background: linear-gradient(135deg, #FF6B6B, #FFB347);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 13px; font-weight: 900; color: white;
+          flex-shrink: 0; overflow: hidden;
+        }
+        .asc-avatar img {
+          width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+        }
+        .asc-user-name {
+          font-size: 13px; font-weight: 800; color: #1A1A2E;
+          max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .asc-chevron {
+          font-size: 10px; color: #999;
+          transition: transform .25s;
+          display: inline-block;
+        }
+        .asc-chevron.open { transform: rotate(180deg); }
+
+        /* ── Dropdown ── */
+        .asc-dropdown {
+          position: absolute; top: calc(100% + 10px); right: 0;
+          background: white; border-radius: 20px;
+          box-shadow: 0 20px 50px rgba(0,0,0,.14), 0 4px 12px rgba(0,0,0,.07);
+          border: 2px solid #FFF0F0;
+          padding: 8px; min-width: 220px;
+          animation: ascDropIn .25s cubic-bezier(.34,1.56,.64,1) both;
+          z-index: 300;
+        }
+        @keyframes ascDropIn {
+          from { opacity: 0; transform: translateY(-8px) scale(.96); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .asc-drop-header {
+          padding: 12px 14px 10px;
+          border-bottom: 1.5px solid #F5F5F5;
+          margin-bottom: 6px;
+        }
+        .asc-drop-header-name {
+          font-weight: 900; font-size: 14px; color: #1A1A2E;
+        }
+        .asc-drop-header-email {
+          font-size: 11px; color: #999; font-weight: 700;
+          margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .asc-drop-item {
+          display: flex; align-items: center; gap: 10px;
+          padding: 10px 14px; border-radius: 12px;
+          font-size: 13px; font-weight: 800; color: #1A1A2E;
+          cursor: pointer; text-decoration: none;
+          transition: background .18s, color .18s;
+          width: 100%; border: none; background: none; font-family: inherit;
+          text-align: left;
+        }
+        .asc-drop-item:hover { background: #FFF0F0; color: #FF6B6B; }
+        .asc-drop-item.danger:hover { background: #FFF5F5; color: #FF4444; }
+        .asc-drop-divider { height: 1.5px; background: #F5F5F5; margin: 6px 0; }
+
+        /* ── Hamburger (mobile) ── */
+        .asc-hamburger {
+          display: none; flex-direction: column; gap: 5px;
+          cursor: pointer; padding: 8px; background: none; border: none;
+        }
+        .asc-hamburger span {
+          display: block; width: 22px; height: 2.5px;
+          background: #1A1A2E; border-radius: 2px;
+          transition: all .3s;
+        }
+        .asc-hamburger.open span:nth-child(1) { transform: translateY(7.5px) rotate(45deg); }
+        .asc-hamburger.open span:nth-child(2) { opacity: 0; }
+        .asc-hamburger.open span:nth-child(3) { transform: translateY(-7.5px) rotate(-45deg); }
+
+        /* ── Mobile menu ── */
+        .asc-mobile-menu {
+          display: none;
+          position: fixed; top: 72px; left: 0; right: 0;
+          background: rgba(255,253,247,0.98);
+          backdrop-filter: blur(20px);
+          padding: 20px 24px 28px;
+          box-shadow: 0 12px 40px rgba(0,0,0,.12);
+          border-bottom: 2px solid #FFE0D0;
+          animation: mobileIn .3s cubic-bezier(.34,1.56,.64,1) both;
+          z-index: 199;
+        }
+        @keyframes mobileIn {
+          from { opacity: 0; transform: translateY(-16px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .asc-mobile-menu.open { display: block; }
+        .asc-mobile-link {
+          display: block; font-size: 18px; font-weight: 800; color: #1A1A2E;
+          text-decoration: none; padding: 12px 0;
+          border-bottom: 1.5px solid #F0EDE8;
+          transition: color .2s;
+        }
+        .asc-mobile-link:hover { color: #FF6B6B; }
+        .asc-mobile-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+          .asc-links { display: none; }
+          .asc-enrol-btn { display: none; }
+          .asc-hamburger { display: flex; }
+        }
+        @media (max-width: 480px) {
+          .asc-login-btn span.label { display: none; }
+          .asc-user-name { display: none; }
+        }
+      `}</style>
+
+      {/* ════ NAVBAR ════ */}
+      <nav className={`asc-nav${navScrolled ? " scrolled" : ""}`}>
+        <div className="asc-nav-inner">
+
+          {/* Logo */}
+          <Link href="/" className="asc-logo">
+            <div className="asc-logo-icon">🧮</div>
+            <div>
+              <div className="asc-logo-title">
+                Ascento <span>Abacus</span>
+              </div>
+              <div className="asc-logo-sub">Brain Development Academy</div>
+            </div>
+          </Link>
+
+          {/* Desktop Links */}
+          <div className="asc-links">
+            <Link href="/programs" className="asc-link">Programs</Link>
+            <Link href="/#whyus"   className="asc-link">Why Us</Link>
+            <Link href="/#gallery" className="asc-link">Gallery</Link>
+            <Link href="/#team"    className="asc-link">Team</Link>
+            <Link href="/contact"  className="asc-link">Contact</Link>
+          </div>
+
+          {/* Right: Auth + Enrol */}
+          <div className="asc-right">
+
+            {/* NOT logged in */}
+            {!user && (
+              <button className="asc-login-btn" onClick={onLogin}>
+                <span>🔑</span>
+                <span className="label">Login</span>
+              </button>
+            )}
+
+            {/* Logged in: avatar + dropdown */}
+            {user && (
+              <div style={{ position: "relative" }} ref={dropRef}>
+                <button
+                  className={`asc-user-trigger${dropOpen ? " open" : ""}`}
+                  onClick={() => setDropOpen((v) => !v)}
+                  aria-haspopup="true"
+                  aria-expanded={dropOpen}
+                >
+                  <div className="asc-avatar">
+                    {user.avatar ? (
+                      <img src={user.avatar} alt={user.name ?? "User"} />
+                    ) : (
+                      initials
+                    )}
+                  </div>
+                  <span className="asc-user-name">
+                    {user.name?.split(" ")[0] ?? user.email}
+                  </span>
+                  <span className={`asc-chevron${dropOpen ? " open" : ""}`}>▼</span>
+                </button>
+
+                {dropOpen && (
+                  <div className="asc-dropdown" role="menu">
+                    {/* Header */}
+                    <div className="asc-drop-header">
+                      <div className="asc-drop-header-name">
+                        {user.name ?? user.email}
+                      </div>
+                      {user.email && (
+                        <div className="asc-drop-header-email">{user.email}</div>
+                      )}
+                    </div>
+
+                    {/* Dashboard */}
+                    <button
+                      className="asc-drop-item"
+                      role="menuitem"
+                      onClick={() => { setDropOpen(false); onDashboard?.(); }}
+                    >
+                      <span>📊</span> Dashboard
+                    </button>
+
+                    {/* Profile */}
+                    <Link
+                      href="/profile"
+                      className="asc-drop-item"
+                      role="menuitem"
+                      onClick={() => setDropOpen(false)}
+                    >
+                      <span>👤</span> My Profile
                     </Link>
 
-                    <nav className="hidden md:flex items-center gap-10">
-                        {['Home', 'Programs', 'Franchise', 'Contact'].map((item) => (
-                            <Link 
-                                key={item}
-                                href={item === 'Home' ? '/' : `/${item.toLowerCase()}`}
-                                className="text-sm font-bold uppercase tracking-widest text-slate-500 hover:text-[#197fe6] transition-all duration-300 relative group"
-                            >
-                                {item}
-                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#197fe6] transition-all group-hover:w-full"></span>
-                            </Link>
-                        ))}
-                    </nav>
+                    {/* Settings */}
+                    <Link
+                      href="/settings"
+                      className="asc-drop-item"
+                      role="menuitem"
+                      onClick={() => setDropOpen(false)}
+                    >
+                      <span>⚙️</span> Settings
+                    </Link>
 
-                    <div className="flex items-center gap-6">
-                        {user ? (
-                            <div className="relative">
-                                <button 
-                                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                    className="flex items-center gap-3 pl-4 py-1.5 pr-1.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:bg-slate-100 transition-all font-bold text-sm text-slate-700 dark:text-slate-300"
-                                >
-                                    <span className="hidden sm:inline italic">{displayName}</span>
-                                    <div className="size-8 rounded-xl bg-[#197fe6] flex items-center justify-center text-white text-xs font-black shadow-lg shadow-[#197fe6]/20">
-                                        {initial}
-                                    </div>
-                                    <ChevronDown size={14} className={`transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                                </button>
+                    <div className="asc-drop-divider" />
 
-                                {isDropdownOpen && (
-                                    <>
-                                        <div className="fixed inset-0 z-10" onClick={() => setIsDropdownOpen(false)}></div>
-                                        <div className="absolute right-0 mt-3 w-64 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl shadow-2xl p-3 z-20 overflow-hidden animate-in fade-in slide-in-from-top-5 duration-300 text-[#0e141b]">
-                                            <div className="p-4 bg-slate-50 dark:bg-slate-950/50 rounded-2xl mb-2">
-                                                <p className="text-xs font-black text-[#197fe6] uppercase tracking-widest mb-1 italic">Level: {role}</p>
-                                                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user.email}</p>
-                                            </div>
-                                            
-                                            <div className="space-y-1">
-                                                {role === "admin" ? (
-                                                    <Link 
-                                                        href="/admin" 
-                                                        onClick={() => setIsDropdownOpen(false)}
-                                                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-[#197fe6] hover:bg-[#197fe6]/5 rounded-xl transition-all ring-1 ring-[#197fe6]/20 bg-[#197fe6]/5 uppercase tracking-widest text-[10px]"
-                                                    >
-                                                        <LayoutDashboard size={18} /> Admin Dashboard
-                                                    </Link>
-                                                ) : (
-                                                    <Link 
-                                                        href="/student" 
-                                                        onClick={() => setIsDropdownOpen(false)}
-                                                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-[#197fe6] hover:bg-[#197fe6]/5 rounded-xl transition-all ring-1 ring-[#197fe6]/20 bg-[#197fe6]/5 uppercase tracking-widest text-[10px]"
-                                                    >
-                                                        <LayoutDashboard size={18} /> My Dashboard
-                                                    </Link>
-                                                )}
-                                                
-                                                <button 
-                                                    onClick={handleLogout}
-                                                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-all uppercase tracking-widest text-[10px]"
-                                                >
-                                                    <LogOut size={18} /> Logout Session
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        ) : (
-                            <Link href="/login" className="flex items-center gap-2 group">
-                                <span className="hidden sm:inline text-sm font-black uppercase tracking-widest text-slate-500 group-hover:text-[#197fe6] transition-colors">Login</span>
-                                <div className="bg-[#197fe6] hover:bg-[#197fe6]/90 text-white px-8 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-[#197fe6]/20 hover:scale-105 active:scale-95 flex items-center gap-2">
-                                    Sign In
-                                </div>
-                            </Link>
-                        )}
-                        
-                        <button
-                            className="md:hidden p-2 text-slate-900 dark:text-white hover:bg-slate-100 rounded-xl transition-all"
-                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        >
-                            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {isMobileMenuOpen && (
-                <div className="md:hidden bg-white dark:bg-[#020617] border-b border-slate-200 dark:border-slate-800 p-6 animate-in slide-in-from-top-10 duration-500">
-                    <nav className="flex flex-col gap-4">
-                        {['Home', 'Programs', 'Franchise', 'Contact'].map((item) => (
-                            <Link 
-                                key={item}
-                                className="text-lg font-black uppercase tracking-widest text-slate-500 hover:text-[#197fe6]" 
-                                href={item === 'Home' ? '/' : `/${item.toLowerCase()}`}
-                                onClick={() => setIsMobileMenuOpen(false)}
-                            >
-                                {item}
-                            </Link>
-                        ))}
-                        <hr className="my-4 border-slate-100 dark:border-slate-800" />
-                        {user ? (
-                            <>
-                                {role === "admin" ? (
-                                    <Link className="text-lg font-black uppercase tracking-widest text-[#197fe6]" href="/admin" onClick={() => setIsMobileMenuOpen(false)}>Open Admin Console</Link>
-                                ) : (
-                                    <Link className="text-lg font-black uppercase tracking-widest text-[#197fe6] flex items-center gap-2" href="/student" onClick={() => setIsMobileMenuOpen(false)}>
-                                        <LayoutDashboard size={20} /> My Dashboard
-                                    </Link>
-                                )}
-                                <button onClick={handleLogout} className="text-lg font-black uppercase tracking-widest text-red-500 text-left">Logout</button>
-                            </>
-                        ) : (
-                            <Link className="bg-[#197fe6] text-white px-8 py-4 rounded-2xl text-center font-black uppercase tracking-widest transition-all shadow-xl shadow-[#197fe6]/20" href="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                                Join Now
-                            </Link>
-                        )}
-                    </nav>
-                </div>
+                    {/* Sign out */}
+                    <button
+                      className="asc-drop-item danger"
+                      role="menuitem"
+                      onClick={() => { setDropOpen(false); onSignOut?.(); }}
+                    >
+                      <span>🚪</span> Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
-        </header>
-    );
+
+            <Link href="/contact" className="asc-enrol-btn">
+              🎉 Enrol Now
+            </Link>
+
+            {/* Hamburger */}
+            <button
+              className={`asc-hamburger${menuOpen ? " open" : ""}`}
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-label="Toggle menu"
+            >
+              <span /><span /><span />
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* ════ MOBILE MENU ════ */}
+      <div className={`asc-mobile-menu${menuOpen ? " open" : ""}`}>
+        {[
+          ["Programs", "/programs"],
+          ["Why Us",   "/#whyus"],
+          ["Gallery",  "/#gallery"],
+          ["Team",     "/#team"],
+          ["Contact",  "/contact"],
+        ].map(([label, href]) => (
+          <Link
+            key={label}
+            href={href}
+            className="asc-mobile-link"
+            onClick={() => setMenuOpen(false)}
+          >
+            {label}
+          </Link>
+        ))}
+
+        <div className="asc-mobile-actions">
+          {!user && (
+            <button
+              className="asc-login-btn"
+              style={{ justifyContent: "center" }}
+              onClick={() => { setMenuOpen(false); onLogin?.(); }}
+            >
+              🔑 Login
+            </button>
+          )}
+
+          {user && (
+            <>
+              <button
+                className="asc-login-btn"
+                style={{ justifyContent: "center" }}
+                onClick={() => { setMenuOpen(false); onDashboard?.(); }}
+              >
+                📊 Dashboard
+              </button>
+              <button
+                className="asc-login-btn"
+                style={{ justifyContent: "center", color: "#FF4444", borderColor: "rgba(255,68,68,0.18)" }}
+                onClick={() => { setMenuOpen(false); onSignOut?.(); }}
+              >
+                🚪 Sign Out
+              </button>
+            </>
+          )}
+
+          <Link
+            href="/contact"
+            className="asc-enrol-btn"
+            style={{ justifyContent: "center" }}
+            onClick={() => setMenuOpen(false)}
+          >
+            🎉 Enrol Now
+          </Link>
+        </div>
+      </div>
+    </>
+  );
 }
